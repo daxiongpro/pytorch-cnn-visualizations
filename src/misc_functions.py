@@ -64,13 +64,13 @@ def save_class_activation_images(org_img, activation_map, file_name):
     # Grayscale activation map
     heatmap, heatmap_on_image = apply_colormap_on_image(org_img, activation_map, 'hsv')
     # Save colored heatmap
-    path_to_file = os.path.join('../results', file_name+'_Cam_Heatmap.png')
+    path_to_file = os.path.join('../results', file_name + '_Cam_Heatmap.png')
     save_image(heatmap, path_to_file)
     # Save heatmap on iamge
-    path_to_file = os.path.join('../results', file_name+'_Cam_On_Image.png')
+    path_to_file = os.path.join('../results', file_name + '_Cam_On_Image.png')
     save_image(heatmap_on_image, path_to_file)
     # SAve grayscale heatmap
-    path_to_file = os.path.join('../results', file_name+'_Cam_Grayscale.png')
+    path_to_file = os.path.join('../results', file_name + '_Cam_Grayscale.png')
     save_image(activation_map, path_to_file)
 
 
@@ -88,8 +88,8 @@ def apply_colormap_on_image(org_im, activation, colormap_name):
     # Change alpha channel in colormap to make sure original image is displayed
     heatmap = copy.copy(no_trans_heatmap)
     heatmap[:, :, 3] = 0.4
-    heatmap = Image.fromarray((heatmap*255).astype(np.uint8))
-    no_trans_heatmap = Image.fromarray((no_trans_heatmap*255).astype(np.uint8))
+    heatmap = Image.fromarray((heatmap * 255).astype(np.uint8).transpose(1, 0, 2))
+    no_trans_heatmap = Image.fromarray((no_trans_heatmap * 255).astype(np.uint8))
 
     # Apply heatmap on iamge
     heatmap_on_image = Image.new("RGBA", org_im.size)
@@ -121,7 +121,7 @@ def format_np_output(np_arr):
     # Phase/Case 4: NP arr is normalized between 0-1
     # Result: Multiply with 255 and change type to make it saveable by PIL
     if np.max(np_arr) <= 1:
-        np_arr = (np_arr*255).astype(np.uint8)
+        np_arr = (np_arr * 255).astype(np.uint8)
     return np_arr
 
 
@@ -152,7 +152,7 @@ def preprocess_image(pil_im, resize_im=True):
     mean = [0.485, 0.456, 0.406]
     std = [0.229, 0.224, 0.225]
 
-    #ensure or transform incoming image to PIL image
+    # ensure or transform incoming image to PIL image
     if type(pil_im) != Image.Image:
         try:
             pil_im = Image.fromarray(pil_im)
@@ -188,7 +188,7 @@ def recreate_image(im_as_var):
         recreated_im (numpy arr): Recreated image in array
     """
     reverse_mean = [-0.485, -0.456, -0.406]
-    reverse_std = [1/0.229, 1/0.224, 1/0.225]
+    reverse_std = [1 / 0.229, 1 / 0.224, 1 / 0.225]
     recreated_im = copy.copy(im_as_var.data.numpy()[0])
     for c in range(3):
         recreated_im[c] /= reverse_std[c]
@@ -232,14 +232,16 @@ def get_example_params(example_index):
     # Pick one of the examples
     example_list = (('../input_images/snake.jpg', 56),
                     ('../input_images/cat_dog.png', 243),
-                    ('../input_images/spider.png', 72))
+                    ('../input_images/spider.png', 72),
+                    ('../input_images/000930.png', None),)
     img_path = example_list[example_index][0]
     target_class = example_list[example_index][1]
-    file_name_to_export = img_path[img_path.rfind('/')+1:img_path.rfind('.')]
+    file_name_to_export = img_path[img_path.rfind('/') + 1:img_path.rfind('.')]
     # Read image
     original_image = Image.open(img_path).convert('RGB')
+    # original_image = original_image.resize((224, 224), Image.ANTIALIAS)
     # Process image
-    prep_img = preprocess_image(original_image)
+    prep_img = preprocess_image(original_image, resize_im=False)
     # Define model
     pretrained_model = models.alexnet(pretrained=True)
     return (original_image,

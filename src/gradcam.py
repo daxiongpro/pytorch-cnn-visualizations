@@ -14,6 +14,7 @@ class CamExtractor():
     """
         Extracts cam features from the model
     """
+
     def __init__(self, model, target_layer):
         self.model = model
         self.target_layer = target_layer
@@ -27,7 +28,8 @@ class CamExtractor():
             Does a forward pass on convolutions, hooks the function at given layer
         """
         conv_output = None
-        for module_pos, module in self.model.features._modules.items():
+        # for module_pos, module in self.model.features._modules.items():
+        for module_pos, module in self.model.backbone.Img_Block._modules.items():
             x = module(x)  # Forward
             if int(module_pos) == self.target_layer:
                 x.register_hook(self.save_gradient)
@@ -42,7 +44,7 @@ class CamExtractor():
         conv_output, x = self.forward_pass_on_convolutions(x)
         x = x.view(x.size(0), -1)  # Flatten
         # Forward pass on the classifier
-        x = self.model.classifier(x)
+        # x = self.model.classifier(x)
         return conv_output, x
 
 
@@ -50,6 +52,7 @@ class GradCam():
     """
         Produces class activation map
     """
+
     def __init__(self, model, target_layer):
         self.model = model
         self.model.eval()
@@ -67,8 +70,9 @@ class GradCam():
         one_hot_output = torch.FloatTensor(1, model_output.size()[-1]).zero_()
         one_hot_output[0][target_class] = 1
         # Zero grads
-        self.model.features.zero_grad()
-        self.model.classifier.zero_grad()
+        # self.model.features.zero_grad()
+        # self.model.classifier.zero_grad()
+        self.model.backbone.Img_Block._modules.items()
         # Backward pass with specified target
         model_output.backward(gradient=one_hot_output, retain_graph=True)
         # Get hooked gradients
@@ -87,7 +91,7 @@ class GradCam():
         cam = (cam - np.min(cam)) / (np.max(cam) - np.min(cam))  # Normalize between 0-1
         cam = np.uint8(cam * 255)  # Scale between 0-255 to visualize
         cam = np.uint8(Image.fromarray(cam).resize((input_image.shape[2],
-                       input_image.shape[3]), Image.ANTIALIAS))/255
+                                                    input_image.shape[3]), Image.ANTIALIAS)) / 255
         # ^ I am extremely unhappy with this line. Originally resizing was done in cv2 which
         # supports resizing numpy matrices with antialiasing, however,
         # when I moved the repository to PIL, this option was out of the window.
@@ -103,11 +107,12 @@ class GradCam():
 
 if __name__ == '__main__':
     # Get params
-    target_example = 0  # Snake
-    (original_image, prep_img, target_class, file_name_to_export, pretrained_model) =\
-        get_example_params(target_example)
+    target_example = 3  # Snake
+    (original_image, prep_img, target_class, file_name_to_export, pretrained_model) = get_example_params(target_example)
+    pretrained_model = torch.load("../src/PISSD-MODEL")
+
     # Grad cam
-    grad_cam = GradCam(pretrained_model, target_layer=11)
+    grad_cam = GradCam(pretrained_model, target_layer=2)
     # Generate cam mask
     cam = grad_cam.generate_cam(prep_img, target_class)
     # Save mask
