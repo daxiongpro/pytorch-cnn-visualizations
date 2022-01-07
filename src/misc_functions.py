@@ -89,7 +89,7 @@ def apply_colormap_on_image(org_im, activation, colormap_name):
     heatmap = copy.copy(no_trans_heatmap)
     heatmap[:, :, 3] = 0.4
     heatmap = Image.fromarray((heatmap * 255).astype(np.uint8).transpose(1, 0, 2))
-    no_trans_heatmap = Image.fromarray((no_trans_heatmap * 255).astype(np.uint8))
+    no_trans_heatmap = Image.fromarray((no_trans_heatmap * 255).astype(np.uint8).transpose(1, 0, 2))
 
     # Apply heatmap on iamge
     heatmap_on_image = Image.new("RGBA", org_im.size)
@@ -215,7 +215,7 @@ def get_positive_negative_saliency(gradient):
     return pos_saliency, neg_saliency
 
 
-def get_example_params(example_index):
+def get_example_params(example_index, example_list):
     """
         Gets used variables for almost all visualizations, like the image, model etc.
 
@@ -230,10 +230,10 @@ def get_example_params(example_index):
         pretrained_model(Pytorch model): Model to use for the operations
     """
     # Pick one of the examples
-    example_list = (('../input_images/snake.jpg', 56),
-                    ('../input_images/cat_dog.png', 243),
-                    ('../input_images/spider.png', 72),
-                    ('../input_images/000930.png', None),)
+    # example_list = (('../input_images/snake.jpg', 56),
+    #                 ('../input_images/cat_dog.png', 243),
+    #                 ('../input_images/spider.png', 72))
+
     img_path = example_list[example_index][0]
     target_class = example_list[example_index][1]
     file_name_to_export = img_path[img_path.rfind('/') + 1:img_path.rfind('.')]

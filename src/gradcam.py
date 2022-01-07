@@ -107,8 +107,9 @@ class GradCam():
 
 if __name__ == '__main__':
     # Get params
-    target_example = 3  # Snake
-    (original_image, prep_img, target_class, file_name_to_export, pretrained_model) = get_example_params(target_example)
+    target_example = 0  # Snake
+    example_list = (('../input_images/000620.png', None),)
+    (original_image, prep_img, target_class, file_name_to_export, pretrained_model) = get_example_params(target_example, example_list)
     pretrained_model = torch.load("../src/PISSD-MODEL")
 
     # Grad cam
